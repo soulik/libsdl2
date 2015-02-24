@@ -402,6 +402,16 @@ typedef unsigned int size_t;
 typedef unsigned int uintptr_t;
 #    endif /* __GNUC__ || _MSC_VER */
 #  endif /* !_STDINT_H_ && !HAVE_STDINT_H */
+
+#cmakedefine HAVE_DIRECTX 1
+#ifdef HAVE_DIRECTX
+	#cmakedefine HAVE_DDRAW_H 1
+	#cmakedefine HAVE_DINPUT_H 1
+	#cmakedefine HAVE_DSOUND_H 1
+	#cmakedefine HAVE_DXGI_H 1
+	#cmakedefine HAVE_XINPUT_H 1
+#endif
+
 #endif /* __WIN32__ */
 
 #endif /* _SDL_config_h */
