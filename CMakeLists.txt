@@ -1286,8 +1286,8 @@ if(NOT WINDOWS OR CYGWIN)
   listtostr(SDL_LIBS _SDL_LIBS)
   set(SDL_LIBS ${_SDL_LIBS})
 
-  # MESSAGE(STATUS "SDL_LIBS: ${SDL_LIBS}")
-  # MESSAGE(STATUS "SDL_STATIC_LIBS: ${SDL_STATIC_LIBS}")
+  MESSAGE(STATUS "SDL_LIBS: ${SDL_LIBS}")
+  MESSAGE(STATUS "SDL_STATIC_LIBS: ${SDL_STATIC_LIBS}")
 
   configure_file("${SDL2_SOURCE_DIR}/sdl2.pc.in"
     "${SDL2_BINARY_DIR}/sdl2.pc" @ONLY)
@@ -1332,6 +1332,9 @@ message(STATUS "")
 message(STATUS " Build Shared Library: ${SDL_SHARED}")
 message(STATUS " Build Static Library: ${SDL_STATIC}")
 message(STATUS "")
+MESSAGE(STATUS "SDL_LIBS: ${SDL_LIBS}")
+MESSAGE(STATUS "SDL_STATIC_LIBS: ${SDL_STATIC_LIBS}")
+
 if(UNIX)
   message(STATUS "If something was not detected, although the libraries")
   message(STATUS "were installed, then make sure you have set the")
