@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2014 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2015 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -38,8 +38,9 @@
 #define FULLSCREEN_MASK ( SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN )
 
 /*
-.which to scancode
-https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent#Constants
+.keyCode to scancode
+https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode
 */
 static const SDL_Scancode emscripten_scancode_table[] = {
     /*  0 */    SDL_SCANCODE_UNKNOWN,
@@ -371,25 +372,24 @@ Emscripten_HandleFocus(int eventType, const EmscriptenFocusEvent *wheelEvent, vo
 EM_BOOL
 Emscripten_HandleTouch(int eventType, const EmscriptenTouchEvent *touchEvent, void *userData)
 {
-    /*SDL_WindowData *window_data = userData;*/
+    SDL_WindowData *window_data = userData;
     int i;
 
-    SDL_TouchID deviceId = 0;
-    if (!SDL_GetTouch(deviceId)) {
-        if (SDL_AddTouch(deviceId, "") < 0) {
-             return 0;
-        }
+    SDL_TouchID deviceId = 1;
+    if (SDL_AddTouch(deviceId, "") < 0) {
+         return 0;
     }
 
     for (i = 0; i < touchEvent->numTouches; i++) {
-        long x, y, id;
+        SDL_FingerID id;
+        float x, y;
 
         if (!touchEvent->touches[i].isChanged)
             continue;
 
         id = touchEvent->touches[i].identifier;
-        x = touchEvent->touches[i].canvasX;
-        y = touchEvent->touches[i].canvasY;
+        x = touchEvent->touches[i].canvasX / (float)window_data->windowed_width;
+        y = touchEvent->touches[i].canvasY / (float)window_data->windowed_height;
 
         if (eventType == EMSCRIPTEN_EVENT_TOUCHMOVE) {
             SDL_SendTouchMotion(deviceId, id, x, y, 1.0f);
@@ -447,8 +447,9 @@ EM_BOOL
 Emscripten_HandleKeyPress(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData)
 {
     char text[5];
-    Emscripten_ConvertUTF32toUTF8(keyEvent->charCode, text);
-    SDL_SendKeyboardText(text);
+    if (Emscripten_ConvertUTF32toUTF8(keyEvent->charCode, text)) {
+        SDL_SendKeyboardText(text);
+    }
     return 1;
 }
 
@@ -621,10 +622,15 @@ Emscripten_UnregisterEventHandlers(SDL_WindowData *data)
     emscripten_set_touchmove_callback("#canvas", NULL, 0, NULL);
     emscripten_set_touchcancel_callback("#canvas", NULL, 0, NULL);
 
-    emscripten_set_keydown_callback("#window", NULL, 0, NULL);
-    emscripten_set_keyup_callback("#window", NULL, 0, NULL);
+    const char *target = SDL_GetHint(SDL_HINT_EMSCRIPTEN_KEYBOARD_ELEMENT);
+    if (!target) {
+        target = "#window";
+    }
 
-    emscripten_set_keypress_callback("#window", NULL, 0, NULL);
+    emscripten_set_keydown_callback(target, NULL, 0, NULL);
+    emscripten_set_keyup_callback(target, NULL, 0, NULL);
+
+    emscripten_set_keypress_callback(target, NULL, 0, NULL);
 
     emscripten_set_fullscreenchange_callback("#document", NULL, 0, NULL);
 
